@@ -29,5 +29,5 @@ runs:
         curl -S -s -i "http://localhost:${{ inputs.port }}" -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}'
       shell: bash
 branding:
-  icon: 'server'
-  color: 'yellow'
+  icon: "server"
+  color: "yellow"

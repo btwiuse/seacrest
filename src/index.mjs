@@ -1,5 +1,5 @@
 #!/bin/sh
-":" //# comment; exec /usr/bin/env node --noharmony "$0" "$@"
+":"; //# comment; exec /usr/bin/env node --noharmony "$0" "$@"
 import { startServer } from "./server.mjs";
 
 let requestedNetwork = process.argv[2] || process.env["REQUESTED_NETWORK"];
@@ -10,12 +10,14 @@ if (!requestedNetwork) {
   throw new Error(`Missing required REQUESTED_NETWORK`);
 }
 
-const walletConnectProjectId = process.argv[3] || process.env["WALLET_CONNECT_PROJECT_ID"];
+const walletConnectProjectId = process.argv[3] ||
+  process.env["WALLET_CONNECT_PROJECT_ID"];
 if (!walletConnectProjectId) {
   throw new Error(`Missing required WALLET_CONNECT_PROJECT_ID`);
 }
 
-let host = process.argv[4] || process.env["ETHEREUM_URL"] || 'https://mainnet.infura.io';
+let host = process.argv[4] || process.env["ETHEREUM_URL"] ||
+  "https://mainnet.infura.io";
 if (!host.startsWith("http")) {
   throw new Error(`Expected host to start with http, got: ${host}`);
 }

@@ -10,34 +10,55 @@ async function eth_sendTransaction(
   chainId,
   accounts,
   walletConnector,
-  [tx]
+  [tx],
 ) {
   return await await signClient.request({
     topic: session.topic,
     chainId: `eip155:${chainId}`,
     request: {
       method: "eth_sendTransaction",
-      params: [ tx ],
+      params: [tx],
     },
-  })
+  });
 }
 
-async function net_version(signClient, session, chainId, accounts, walletConnector, []) {
+async function net_version(
+  signClient,
+  session,
+  chainId,
+  accounts,
+  walletConnector,
+  [],
+) {
   return chainId;
 }
 
-async function eth_accounts(signClient, session, chainId, accounts, walletConnector, []) {
+async function eth_accounts(
+  signClient,
+  session,
+  chainId,
+  accounts,
+  walletConnector,
+  [],
+) {
   return accounts;
 }
 
-async function personal_sign(signClient, session, chainId, accounts, walletConnector, params) {
+async function personal_sign(
+  signClient,
+  session,
+  chainId,
+  accounts,
+  walletConnector,
+  params,
+) {
   return await signClient.request({
     topic: session.topic,
     chainId: `eip155:${chainId}`,
     request: {
       method: "personal_sign",
       params: params.length === 1 ? [params[0], accounts[0]] : params,
-    }
+    },
   });
 }
 
@@ -45,7 +66,7 @@ const rpcFuncs = {
   eth_sendTransaction,
   net_version,
   eth_accounts,
-  personal_sign
+  personal_sign,
 };
 
 function getReqBody(req) {
@@ -77,7 +98,7 @@ async function proxy(host, request, reqBody, response) {
   let headers = Object.fromEntries(
     Object.entries([...result.headers]).filter(([name, value]) => {
       return name.toLowerCase() === "content-type";
-    })
+    }),
   );
 
   let resData = new Uint8Array(await result.arrayBuffer());
@@ -93,8 +114,19 @@ async function sendJson(response, json) {
   response.end();
 }
 
-export async function startServer(host, port, walletConnectProjectId, requestedNetwork, connectOpts={}) {
-  const walletConnectorPromise = getWalletConnector(walletConnectProjectId, host, requestedNetwork, connectOpts);
+export async function startServer(
+  host,
+  port,
+  walletConnectProjectId,
+  requestedNetwork,
+  connectOpts = {},
+) {
+  const walletConnectorPromise = getWalletConnector(
+    walletConnectProjectId,
+    host,
+    requestedNetwork,
+    connectOpts,
+  );
 
   http
     .createServer(async (request, response) => {
@@ -124,7 +156,7 @@ export async function startServer(host, port, walletConnectProjectId, requestedN
           chainId,
           accounts,
           walletConnector,
-          requestJson.params
+          requestJson.params,
         );
 
         await sendJson(response, {
@@ -140,6 +172,6 @@ export async function startServer(host, port, walletConnectProjectId, requestedN
     .listen(port);
 
   console.log(
-    `[Seacrest] Seacrest proxy running on http://localhost:${port} to ${host}`
+    `[Seacrest] Seacrest proxy running on http://localhost:${port} to ${host}`,
   );
 }
