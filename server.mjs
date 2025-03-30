@@ -1,65 +1,6 @@
 import http from "http";
 import { getPolkadotConnector } from "./connector.mjs";
-
-async function polkadot_signTransaction(
-  signClient,
-  session,
-  chainCAIP,
-  accounts,
-  [transactionPayload],
-) {
-  console.log(
-    { chainCAIP, accounts, transactionPayload },
-  );
-  return signClient.request({
-    topic: session.topic,
-    chainId: chainCAIP,
-    request: {
-      method: "polkadot_signTransaction",
-      params: {
-        address: accounts[0].address,
-        transactionPayload,
-      },
-    },
-  });
-}
-
-async function polkadot_signMessage(
-  signClient,
-  session,
-  chainCAIP,
-  accounts,
-  [message],
-) {
-  return signClient.request({
-    topic: session.topic,
-    chainId: chainCAIP,
-    request: {
-      method: "polkadot_signMessage",
-      params: {
-        address: accounts[0].address,
-        message,
-      },
-    },
-  });
-}
-
-// polkadot_getAccounts is not supported via RPC
-// here directly return accounts from session
-async function polkadot_getAccounts(
-  signClient,
-  session,
-  chainCAIP,
-  accounts,
-) {
-  return accounts.map((a) => a.address);
-}
-
-const rpcFuncs = {
-  polkadot_signTransaction,
-  polkadot_signMessage,
-  polkadot_getAccounts,
-};
+import { rpcFuncs } from "./rpc.mjs";
 
 function getReqBody(req) {
   return new Promise((resolve, reject) => {
@@ -70,35 +11,12 @@ function getReqBody(req) {
   });
 }
 
-async function proxy(host, request, reqBody, response) {
-  const pathname = URL.parse(request.url).pathname;
-  const hostname = URL.parse(host).host;
-  const proxyUrl = `${host}${pathname === "/" ? "" : pathname}`;
-  const reqHeaders = { ...request.headers, host: hostname };
-
-  const result = await fetch(proxyUrl, {
-    method: request.method,
-    headers: reqHeaders,
-    body: reqBody,
-  });
-
-  const headers = Object.fromEntries(
-    [...result.headers].filter(([name]) =>
-      name.toLowerCase() === "content-type"
-    ),
-  );
-
-  response.writeHead(result.status, headers);
-  result.body.pipe(response);
-}
-
 async function sendJson(response, json) {
   response.writeHead(200, { "content-type": "application/json" });
   response.end(JSON.stringify(json));
 }
 
 export async function startServer(
-  host,
   port,
   walletConnectProjectId,
   requestedChain,
@@ -135,8 +53,7 @@ export async function startServer(
           result,
         });
       } else {
-        console.log(`Proxying method: ${method}`);
-        await proxy(host, request, reqBody, response);
+        throw new Error(`Method not found: ${method}`);
       }
     } catch (error) {
       console.error("Request error:", error);
@@ -147,5 +64,5 @@ export async function startServer(
     }
   }).listen(port);
 
-  console.log(`Polkadot RPC proxy running on http://localhost:${port}`);
+  console.log(`WalletConnect RPC Server running on http://localhost:${port}`);
 }
