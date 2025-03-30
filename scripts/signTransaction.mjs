@@ -7,6 +7,7 @@ const wsProvider = new WsProvider("wss://rpc.vara.network");
 const api = await ApiPromise.create({ provider: wsProvider });
 
 const lastHeader = await api.rpc.chain.getHeader();
+const blockHash = lastHeader.hash;
 const blockNumber = api.registry.createType(
   "BlockNumber",
   lastHeader.number.toNumber(),
@@ -25,15 +26,21 @@ const address = (await getPolkadotAccounts())[0];
 const nonce = await api.rpc.system.accountNextIndex(address);
 
 console.log({
+  specVersion: api.runtimeVersion.specVersion.toHuman(),
+  era: era.toHuman(),
+  blockHash: blockHash.toHex(),
+  blockNumber: blockNumber.toHuman(),
   address,
-  nonce,
+  nonce: nonce.toHuman(),
+  method: method.toHuman(),
+  version: tx.version,
 });
 
 const unsignedTransaction = {
   specVersion: api.runtimeVersion.specVersion.toHex(),
   transactionVersion: api.runtimeVersion.transactionVersion.toHex(),
   address: address,
-  blockHash: lastHeader.hash.toHex(),
+  blockHash: blockHash.toHex(),
   blockNumber: blockNumber.toHex(),
   era: era.toHex(),
   genesisHash: api.genesisHash.toHex(),
