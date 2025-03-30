@@ -28,10 +28,9 @@ const REQUIRED_NAMESPACES = {
   },
 };
 
-// Initialize once and reuse
 let signClientInstance = null;
 
-export async function initializeSignClient(projectId, storageOptions = {}) {
+export async function ensureSignClient(projectId, storageOptions = {}) {
   if (!signClientInstance) {
     signClientInstance = await SignClient.init({
       projectId,
@@ -161,15 +160,9 @@ export async function getPolkadotConnector(
 
   const chainCAIP = validateChainId(requestedChain);
 
-  // Initialize client if not already initialized
-  if (!signClientInstance) {
-    await initializeSignClient(projectId);
-  }
+  await ensureSignClient(projectId);
 
-  // Try to reuse existing session
   let session = await getExistingSession(chainCAIP);
-
-  // Create new connection if no valid session exists
   if (!session) {
     session = await createNewConnection(chainCAIP, options);
   }
