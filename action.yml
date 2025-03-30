@@ -10,10 +10,8 @@ inputs:
     required: true
     default: vara
 runs:
-  using: "composite"
-  runs-on: ubuntu-latest
-  container:
-    image: btwiuse/arch:dev
+  using: "docker"
+  image: docker.io/btwiuse/arch:dev
   steps:
     - run: |
         cd ${{ github.action_path }}
