@@ -1,4 +1,5 @@
 import { SignClient } from "@walletconnect/sign-client";
+import { KeyValueStorage } from "@walletconnect/keyvaluestorage";
 import qrcode from "qrcode-terminal";
 
 const POLKADOT_CHAINS = {
@@ -27,11 +28,62 @@ const REQUIRED_NAMESPACES = {
   },
 };
 
-async function initializeClient(projectId) {
-  return await SignClient.init({
-    projectId,
-    metadata: CLIENT_METADATA,
+// Initialize once and reuse
+let signClientInstance = null;
+
+export async function initializeSignClient(projectId, storageOptions = {}) {
+  if (!signClientInstance) {
+    signClientInstance = await SignClient.init({
+      projectId,
+      metadata: CLIENT_METADATA,
+      storage: new KeyValueStorage({
+        database: "wc_polkadot_db",
+        table: "sessions",
+        ...storageOptions,
+      }),
+    });
+  }
+  return signClientInstance;
+}
+
+export async function getExistingSession(chainCAIP) {
+  if (!signClientInstance) return null;
+
+  const sessions = signClientInstance.session.getAll();
+  return sessions.find((session) =>
+    session.namespaces.polkadot.chains.includes(chainCAIP)
+  );
+}
+
+async function createNewConnection(chainCAIP, options) {
+  const { uri, approval } = await signClientInstance.connect({
+    requiredNamespaces: {
+      polkadot: {
+        ...REQUIRED_NAMESPACES.polkadot,
+        chains: [chainCAIP],
+      },
+    },
   });
+
+  if (!uri) throw new Error("Failed to generate connection URI");
+
+  const cleanupQrDisplay = displayQrCode(uri, options);
+
+  try {
+    const session = await Promise.race([
+      approval(),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Connection timeout")),
+          options.uriTimeout,
+        )
+      ),
+    ]);
+
+    return session;
+  } finally {
+    cleanupQrDisplay();
+  }
 }
 
 function displayQrCode(uri, options) {
@@ -108,46 +160,31 @@ export async function getPolkadotConnector(
   };
 
   const chainCAIP = validateChainId(requestedChain);
-  const signClient = await initializeClient(projectId);
 
-  const { uri, approval } = await signClient.connect({
-    requiredNamespaces: {
-      polkadot: {
-        ...REQUIRED_NAMESPACES.polkadot,
-        chains: [chainCAIP],
-      },
-    },
-  });
-
-  if (!uri) throw new Error("Failed to generate connection URI");
-
-  const cleanupQrDisplay = displayQrCode(uri, options);
-
-  try {
-    const session = await Promise.race([
-      approval(),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Connection timeout")),
-          options.uriTimeout,
-        )
-      ),
-    ]);
-
-    const accounts = validateSession(session, chainCAIP);
-
-    console.info(
-      "[Polkadot][WalletConnect] Connected accounts:",
-      accounts.map((a) => a.address),
-    );
-
-    return {
-      signClient,
-      session,
-      chainCAIP,
-      accounts,
-    };
-  } finally {
-    cleanupQrDisplay();
+  // Initialize client if not already initialized
+  if (!signClientInstance) {
+    await initializeSignClient(projectId);
   }
+
+  // Try to reuse existing session
+  let session = await getExistingSession(chainCAIP);
+
+  // Create new connection if no valid session exists
+  if (!session) {
+    session = await createNewConnection(chainCAIP, options);
+  }
+
+  const accounts = validateSession(session, chainCAIP);
+
+  console.info(
+    "[Polkadot][WalletConnect] Connected accounts:",
+    accounts.map((a) => a.address),
+  );
+
+  return {
+    signClient: signClientInstance,
+    session,
+    chainCAIP,
+    accounts,
+  };
 }
