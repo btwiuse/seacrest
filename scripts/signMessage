@@ -1,0 +1,8 @@
+curl -X POST http://localhost:8585 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "method": "polkadot_signMessage",
+    "params": ["Hello from Polkadot!"]
+  }'
