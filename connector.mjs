@@ -54,7 +54,7 @@ export async function getExistingSession(chainCAIP) {
   );
 }
 
-async function createNewConnection(chainCAIP, options) {
+async function createNewSession(chainCAIP, options) {
   const { uri, approval } = await signClientInstance.connect({
     requiredNamespaces: {
       polkadot: {
@@ -164,7 +164,7 @@ export async function getPolkadotConnector(
 
   let session = await getExistingSession(chainCAIP);
   if (!session) {
-    session = await createNewConnection(chainCAIP, options);
+    session = await createNewSession(chainCAIP, options);
   }
 
   const accounts = validateSession(session, chainCAIP);
