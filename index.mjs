@@ -1,5 +1,5 @@
-#!/bin/sh
-":"; //# comment; exec /usr/bin/env node --noharmony "$0" "$@"
+#!/usr/bin/env bun
+
 import { startServer } from "./server.mjs";
 
 let requestedNetwork = process.argv[2] || process.env["REQUESTED_NETWORK"] ||
