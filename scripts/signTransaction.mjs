@@ -49,6 +49,7 @@ const unsignedTransaction = {
   signedExtensions: api.registry.signedExtensions,
   tip: api.registry.createType("Compact<Balance>", 0).toHex(),
   version: tx.version,
+  withSignedTransaction: true,
 };
 
 console.log({ unsignedTransaction });
@@ -73,9 +74,14 @@ try {
   const data = await response.json();
   console.log("Signed transaction:", data.result);
 
-  // send tx
-  tx.addSignature(address, data.result.signature, unsignedTransaction);
-  const txHash = await api.rpc.author.submitExtrinsic(tx);
+  // send tx withSignedTransaction: false
+  // tx.addSignature(address, data.result.signature, unsignedTransaction);
+  // const txHash = await api.rpc.author.submitExtrinsic(tx);
+
+  // send tx withSignedTransaction: true
+  const txHash = await api.rpc.author.submitExtrinsic(
+    data.result.signedTransaction,
+  );
   console.log("txHash", txHash.toHex());
 } catch (error) {
   console.error("Signing failed:", error.message);
