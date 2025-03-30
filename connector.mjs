@@ -7,6 +7,7 @@ const POLKADOT_CHAINS = {
   "kusama": "polkadot:b0a8d493285c2df73290dfb7e61f870f",
   "rococo": "polkadot:6402de9248192d349f9625764fad3357",
   "vara": "polkadot:fe1b4c55fd4d668101126434206571a7",
+  "tvara": "polkadot:525639f713f397dcf839bd022cd821f3",
 };
 
 const CLIENT_METADATA = {
