@@ -10,18 +10,8 @@ inputs:
     required: true
     default: vara
 runs:
-  using: "docker"
-  image: docker.io/btwiuse/arch:dev
-  steps:
-    - run: |
-        cd ${{ github.action_path }}
-        bun install
-        LARGE=false RESHOW_DELAY=10000 PORT="${{ inputs.port }}" ./index.mjs &
-        while ! nc -z localhost "${{ inputs.port }}"; do
-          sleep 0.1
-        done
-        ufo pub :"${{ inputs.port }}"
-      shell: bash
+  using: 'docker'
+  image: 'Dockerfile'
 branding:
   icon: "server"
   color: "yellow"
