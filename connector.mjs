@@ -23,6 +23,8 @@ const REQUIRED_NAMESPACES = {
     methods: [
       "polkadot_signTransaction",
       "polkadot_signMessage",
+      // Not available:
+      // "polkadot_getAccounts",
     ],
     events: ["chainChanged", "accountsChanged"],
   },

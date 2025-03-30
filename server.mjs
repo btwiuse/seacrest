@@ -44,6 +44,8 @@ async function polkadot_signMessage(
   });
 }
 
+// polkadot_getAccounts is not supported via RPC
+// here directly return accounts from session
 async function polkadot_getAccounts(
   signClient,
   session,
