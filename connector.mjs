@@ -12,10 +12,12 @@ const POLKADOT_CHAINS = {
 };
 
 const CLIENT_METADATA = {
-  description: "Polkadot WalletConnect Integration",
-  url: "https://github.com/your-repo",
-  icons: ["https://your-logo.png"],
-  name: "Polkadot Connector",
+  description: "WalletConnect RPC Server",
+  url: "https://github.com/btwiuse/seacrest",
+  icons: [
+    "https://raw.githubusercontent.com/btwiuse/seacrest/refs/heads/main/logo.png",
+  ],
+  name: "Waku",
 };
 
 const REQUIRED_NAMESPACES = {
