@@ -3,7 +3,8 @@ import { getPolkadotAccounts } from "./getPolkadotAccounts.mjs";
 
 // 1. Initialize Polkadot API
 // const wsProvider = new WsProvider("wss://rpc.polkadot.io");
-const wsProvider = new WsProvider("wss://rpc.vara.network");
+// const wsProvider = new WsProvider("wss://rpc.vara.network");
+const wsProvider = new WsProvider("wss://testnet.vara.network");
 const api = await ApiPromise.create({ provider: wsProvider });
 
 const lastHeader = await api.rpc.chain.getHeader();
@@ -49,7 +50,7 @@ const unsignedTransaction = {
   signedExtensions: api.registry.signedExtensions,
   tip: api.registry.createType("Compact<Balance>", 0).toHex(),
   version: tx.version,
-  withSignedTransaction: true,
+  // withSignedTransaction: true,
 };
 
 console.log({ unsignedTransaction });
@@ -75,13 +76,17 @@ try {
   console.log("Signed transaction:", data.result);
 
   // send tx withSignedTransaction: false
-  // tx.addSignature(address, data.result.signature, unsignedTransaction);
-  // const txHash = await api.rpc.author.submitExtrinsic(tx);
+  tx.addSignature(address, data.result.signature, unsignedTransaction);
+  const txHash = await api.rpc.author.submitExtrinsic(tx);
 
   // send tx withSignedTransaction: true
+  // 2025-04-16 08:05:08        RPC-CORE: submitExtrinsic(extrinsic: Extrinsic): Hash:: 1010: Invalid Transaction: Transaction call is not expected
+  // Signing failed: 1010: Invalid Transaction: Transaction call is not expected
+  /*
   const txHash = await api.rpc.author.submitExtrinsic(
     data.result.signedTransaction,
   );
+  */
   console.log("txHash", txHash.toHex());
 } catch (error) {
   console.error("Signing failed:", error.message);
