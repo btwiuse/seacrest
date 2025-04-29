@@ -73,15 +73,15 @@ async function createNewSession(chainCAIP, options) {
   const cleanupQrDisplay = displayQrCode(uri, options);
 
   try {
-    const session = await Promise.race([
-      approval(),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Connection timeout")),
-          options.uriTimeout,
-        )
-      ),
-    ]);
+    let promises = [ approval() ];
+    if (options.uriTimeout > 0) {
+      promises.push(
+	new Promise((_, reject) =>
+	  setTimeout(() => reject(new Error("Connection timeout")), options.uriTimeout),
+	),
+      );
+    }
+    const session = await Promise.race(promises);
 
     return session;
   } finally {
@@ -157,7 +157,8 @@ export async function getPolkadotConnector(
 ) {
   const options = {
     reshowDelay: null,
-    uriTimeout: 120_000,
+    // 0 = no timeout; 120_000 = 2 min
+    uriTimeout: 0,
     large: false,
     ...connectOpts,
   };
