@@ -1,5 +1,6 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { getPolkadotAccounts } from "./getPolkadotAccounts.mjs";
+import { createUnsignedTransaction } from "./utils.mjs";
 
 // 1. Initialize Polkadot API
 // const wsProvider = new WsProvider("wss://rpc.polkadot.io");
@@ -7,51 +8,21 @@ import { getPolkadotAccounts } from "./getPolkadotAccounts.mjs";
 const wsProvider = new WsProvider("wss://testnet.vara.network");
 const api = await ApiPromise.create({ provider: wsProvider });
 
-const lastHeader = await api.rpc.chain.getHeader();
-const blockHash = lastHeader.hash;
-const blockNumber = api.registry.createType(
-  "BlockNumber",
-  lastHeader.number.toNumber(),
-);
 const tx = api.tx.system.remark("WC");
-const method = api.createType("Call", tx);
-
-const era = api.registry.createType("ExtrinsicEra", {
-  current: lastHeader.number.toNumber(),
-  period: 64,
-});
-
-// const address = "13dGJevQfK1tYCXNHcKhaQNi3zw3SaTZdZ727upnh3pFewiK";
 const address = (await getPolkadotAccounts())[0];
 
-const nonce = await api.rpc.system.accountNextIndex(address);
+const unsignedTransaction = await createUnsignedTransaction(api, address, tx);
 
 console.log({
   specVersion: api.runtimeVersion.specVersion.toHuman(),
-  era: era.toHuman(),
-  blockHash: blockHash.toHex(),
-  blockNumber: blockNumber.toHuman(),
+  era: unsignedTransaction.era,
+  blockHash: unsignedTransaction.blockHash,
+  blockNumber: unsignedTransaction.blockNumber,
   address,
-  nonce: nonce.toHuman(),
-  method: method.toHuman(),
+  nonce: unsignedTransaction.nonce,
+  method: unsignedTransaction.method,
   version: tx.version,
 });
-
-const unsignedTransaction = {
-  specVersion: api.runtimeVersion.specVersion.toHex(),
-  transactionVersion: api.runtimeVersion.transactionVersion.toHex(),
-  address: address,
-  blockHash: blockHash.toHex(),
-  blockNumber: blockNumber.toHex(),
-  era: era.toHex(),
-  genesisHash: api.genesisHash.toHex(),
-  method: method.toHex(),
-  nonce: nonce.toHex(),
-  signedExtensions: api.registry.signedExtensions,
-  tip: api.registry.createType("Compact<Balance>", 0).toHex(),
-  version: tx.version,
-  // withSignedTransaction: true,
-};
 
 console.log({ unsignedTransaction });
 
